@@ -1,6 +1,7 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Extensions;
 using Servers.Config;
@@ -100,6 +101,7 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
     }
 
     [ConsoleCommand("servers_reload_config", "Reloads the Servers plugin config")]
+    [RequiresPermissions("@css/root")]
     public void OnReloadConfig(CCSPlayerController? player, CommandInfo cmd)
     {
         Config.Reload();
@@ -107,6 +109,7 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
     }
 
     [ConsoleCommand("servers_reset_config", "Resets the Servers plugin config to defaults (in-memory)")]
+    [RequiresPermissions("@css/root")]
     public void OnResetConfig(CCSPlayerController? player, CommandInfo cmd)
     {
         Config.Update();
