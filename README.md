@@ -18,6 +18,10 @@
 A **Counter-Strike 2 plugin** for **CounterStrikeSharp** that shows the status of your server network (map, players, slots, online/offline).  
 Useful for communities with multiple servers.
 
+<p align="center">
+  <img src="https://i.ibb.co/Z654ycY9/servers.png" alt="Servers Plugin Preview"/>
+</p>
+
 The plugin supports:
 - **Configurable command names** (`servers`, etc.)
 - **Configurable chat prefix and language**
