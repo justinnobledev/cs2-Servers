@@ -1,0 +1,7 @@
+﻿{
+  "Servers.Header": "{yellow}Dostupné servery:{default}",
+  "Servers.Line.Online": "{white}{1}{default} [{lightblue}{2}{default}] [{green}{3}{default}/{red}{4}{default}] connect {gold}{5}:{6}{default}",
+  "Servers.Line.Offline": "{lightred}{1}{default} [offline] connect {gold}{2}:{3}{default}",
+  "Servers.Reload.Done": "Konfigurácia bola znovu načítaná.",
+  "Servers.Reset.Done": "Konfigurácia bola obnovená na predvolené hodnoty."
+}
