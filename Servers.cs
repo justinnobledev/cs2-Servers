@@ -5,6 +5,7 @@ using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Extensions;
+using Timer = CounterStrikeSharp.API.Modules.Timers.Timer;
 using Servers.Config;
 using Servers.Services;
 
@@ -21,12 +22,16 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
     private ServerQuery _query = null!;
     private readonly HashSet<string> _registered = new(StringComparer.OrdinalIgnoreCase);
 
+    private Timer? _advertTimer;
+    private int _advertServerCounter = 0;
+
     public void OnConfigParsed(PluginConfig config)
     {
         if (config.QueryTimeoutMs < 200) config.QueryTimeoutMs = 200;
         if (config.QueryTimeoutMs > 5000) config.QueryTimeoutMs = 5000;
         if (config.CacheTtlSeconds < 0) config.CacheTtlSeconds = 0;
         if (config.CacheTtlSeconds > 30) config.CacheTtlSeconds = 30;
+        if (config.AdvertisementTimeSecs < 0) config.AdvertisementTimeSecs = 0;
 
         if (string.IsNullOrWhiteSpace(config.ChatPrefix)) config.ChatPrefix = " {green}[Servers]{default}";
         if (config.CommandNames.Length == 0) config.CommandNames = new[] { "servers" };
@@ -37,6 +42,12 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
             if (string.IsNullOrWhiteSpace(ep.Name)) ep.Name = "Server";
             if (string.IsNullOrWhiteSpace(ep.Address)) throw new Exception($"Server '{ep.Name}' has empty Address.");
             if (ep.Port is < 1 or > 65535) throw new Exception($"Server '{ep.Name}' has invalid Port: {ep.Port}");
+        }
+
+        if (_advertTimer is not null)
+        {
+            _advertTimer.Kill();
+            _advertTimer = AddTimer((float)config.AdvertisementTimeSecs, AdvertServer);
         }
 
         Config = config;
@@ -95,6 +106,34 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
                         player.PrintToChat(Pref(Localizer["Servers.Line.Offline", r.Index, r.Ep.Name, r.Ep.Address, r.Ep.Port]).ReplaceColorTags());
                     }
                 }
+            });
+        });
+    }
+
+    private void AdvertServer()
+    {
+        var eps = Config.Servers.ToArray();
+
+        _ = Task.Run(async () =>
+        {
+            var tasks = eps.Select(async (ep, i) =>
+            {
+                var qr = await _query.QueryAsync(ep).ConfigureAwait(false);
+                return new { Index = i + 1, Ep = ep, Q = qr };
+            });
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            Server.NextFrame(() =>
+            {
+                var validResults = results.Where(r => r.Q.Ok);
+                if (_advertServerCounter > results.Length) _advertServerCounter = 0;
+                if (results.Length == 0) return;
+
+                var r = results[_advertServerCounter];
+                Server.PrintToChatAll(Pref(Localizer["Servers.Line.Online",
+                            r.Index, r.Ep.Name, r.Q.Map, r.Q.Players, r.Q.MaxPlayers, r.Ep.Address, r.Ep.Port]).ReplaceColorTags());
+
+                _advertServerCounter++;
             });
         });
     }

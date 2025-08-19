@@ -15,6 +15,7 @@ public class PluginConfig : BasePluginConfig
         new ServerEndpoint { Name = "Public #1", Address = "127.0.0.1", Port = 27015 },
         new ServerEndpoint { Name = "Public #2", Address = "127.0.0.1", Port = 27016 }
     };
+    [JsonPropertyName("AdvertisementTimeSecs")] public int AdvertisementTimeSecs { get; set; } = 180;
 }
 
 public class ServerEndpoint
