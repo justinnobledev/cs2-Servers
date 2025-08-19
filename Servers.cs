@@ -8,6 +8,7 @@ using CounterStrikeSharp.API.Modules.Extensions;
 using Timer = CounterStrikeSharp.API.Modules.Timers.Timer;
 using Servers.Config;
 using Servers.Services;
+using CounterStrikeSharp.API.Modules.Timers;
 
 namespace Servers;
 
@@ -47,7 +48,7 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
         if (_advertTimer is not null)
         {
             _advertTimer.Kill();
-            _advertTimer = AddTimer(config.AdvertisementTimeSecs, AdvertServer);
+            _advertTimer = AddTimer(config.AdvertisementTimeSecs, AdvertServer, TimerFlags.REPEAT);
         }
 
         Config = config;
@@ -61,7 +62,8 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
         foreach (var name in Config.CommandNames)
             RegisterCommandOnce(name, "Shows the list of servers", OnCmdServers);
 
-        _advertTimer = AddTimer(Config.AdvertisementTimeSecs, AdvertServer);
+        _advertTimer = AddTimer(Config.AdvertisementTimeSecs, AdvertServer, TimerFlags.REPEAT);
+        AdvertServer();
     }
 
     private void RegisterCommandOnce(string name, string help, CommandInfo.CommandCallback callback)
