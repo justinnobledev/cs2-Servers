@@ -1,6 +1,7 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Extensions;
@@ -17,7 +18,6 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
 
     public PluginConfig Config { get; set; } = new();
 
-    private Localization _l = null!;
     private ServerQuery _query = null!;
     private readonly HashSet<string> _registered = new(StringComparer.OrdinalIgnoreCase);
 
@@ -45,7 +45,6 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
     public override void Load(bool hotReload)
     {
         var langDir = Path.Combine(ModuleDirectory, "lang");
-        _l = new Localization(langDir, Config.Language);
         _query = new ServerQuery(Config.QueryTimeoutMs, Config.CacheTtlSeconds);
 
         foreach (var name in Config.CommandNames)
@@ -64,7 +63,7 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
 
     private void OnCmdServers(CCSPlayerController? caller, CommandInfo info)
     {
-        if (!Chat.ValidateCaller(caller)) return;
+        if (!ValidateCaller(caller)) return;
         var player = caller!;
         
         var eps = Config.Servers.ToArray();
@@ -82,18 +81,18 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
             {
                 if (player is not { IsValid: true }) return;
 
-                Chat.ToPlayer(player, Pref(_l["Servers.Header"]));
+                player.PrintToChat(Pref(Localizer["Servers.Header"]).ReplaceColorTags());
                 foreach (var r in results)
                 {
                     if (r.Q.Ok)
                     {
-                        Chat.ToPlayer(player, Pref(_l["Servers.Line.Online"]),
-                            r.Index, r.Ep.Name, r.Q.Map, r.Q.Players, r.Q.MaxPlayers, r.Ep.Address, r.Ep.Port);
+                        player.PrintToChat(Pref(Localizer["Servers.Line.Online",
+                            r.Index, r.Ep.Name, r.Q.Map, r.Q.Players, r.Q.MaxPlayers, r.Ep.Address, r.Ep.Port]
+                        ).ReplaceColorTags());
                     }
                     else
                     {
-                        Chat.ToPlayer(player, Pref(_l["Servers.Line.Offline"]),
-                            r.Index, r.Ep.Name, r.Ep.Address, r.Ep.Port);
+                        player.PrintToChat(Pref(Localizer["Servers.Line.Offline", r.Index, r.Ep.Name, r.Ep.Address, r.Ep.Port]).ReplaceColorTags());
                     }
                 }
             });
@@ -105,7 +104,7 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
     public void OnReloadConfig(CCSPlayerController? player, CommandInfo cmd)
     {
         Config.Reload();
-        cmd.ReplyToCommand(_l["Servers.Reload.Done"]);
+        cmd.ReplyToCommand(Localizer["Servers.Reload.Done"]);
     }
 
     [ConsoleCommand("servers_reset_config", "Resets the Servers plugin config to defaults (in-memory)")]
@@ -113,6 +112,12 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
     public void OnResetConfig(CCSPlayerController? player, CommandInfo cmd)
     {
         Config.Update();
-        cmd.ReplyToCommand(_l["Servers.Reset.Done"]);
+        cmd.ReplyToCommand(Localizer["Servers.Reset.Done"]);
     }
+    
+    public static bool ValidateCaller(CCSPlayerController? caller)
+        => caller is { IsValid: true } && !caller.IsBot && !caller.IsHLTV;
+
+    public static string Name(CCSPlayerController player)
+        => string.IsNullOrWhiteSpace(player.PlayerName) ? "Unknown" : player.PlayerName;
 }
