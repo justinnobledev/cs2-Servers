@@ -47,7 +47,7 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
         if (_advertTimer is not null)
         {
             _advertTimer.Kill();
-            _advertTimer = AddTimer((float)config.AdvertisementTimeSecs, AdvertServer);
+            _advertTimer = AddTimer(config.AdvertisementTimeSecs, AdvertServer);
         }
 
         Config = config;
@@ -60,6 +60,8 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
 
         foreach (var name in Config.CommandNames)
             RegisterCommandOnce(name, "Shows the list of servers", OnCmdServers);
+
+        _advertTimer = AddTimer(Config.AdvertisementTimeSecs, AdvertServer);
     }
 
     private void RegisterCommandOnce(string name, string help, CommandInfo.CommandCallback callback)
