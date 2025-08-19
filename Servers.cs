@@ -14,7 +14,7 @@ namespace Servers;
 public class Servers : BasePlugin, IPluginConfig<PluginConfig>
 {
     public override string ModuleName => "Servers";
-    public override string ModuleVersion => "1.0";
+    public override string ModuleVersion => "1.1";
     public override string ModuleAuthor => "TICHOJEBEC";
 
     public PluginConfig Config { get; set; } = new();
@@ -76,9 +76,9 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
     {
         if (!ValidateCaller(caller)) return;
         var player = caller!;
-        
+
         var eps = Config.Servers.ToArray();
-        
+
         _ = Task.Run(async () =>
         {
             var tasks = eps.Select(async (ep, i) =>
@@ -87,7 +87,7 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
                 return new { Index = i + 1, Ep = ep, Q = qr };
             });
             var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-            
+
             Server.NextFrame(() =>
             {
                 if (player is not { IsValid: true }) return;
