@@ -129,11 +129,11 @@ public class Servers : BasePlugin, IPluginConfig<PluginConfig>
 
             Server.NextFrame(() =>
             {
-                var validResults = results.Where(r => r.Q.Ok);
-                if (_advertServerCounter > results.Length) _advertServerCounter = 0;
-                if (results.Length == 0) return;
+                var validResults = results.Where(r => r.Q.Ok).ToArray();
+                if (_advertServerCounter >= validResults.Length) _advertServerCounter = 0;
+                if (validResults.Length == 0) return;
 
-                var r = results[_advertServerCounter];
+                var r = validResults[_advertServerCounter];
                 Server.PrintToChatAll(Pref(Localizer["Servers.Line.Online",
                             r.Index, r.Ep.Name, r.Q.Map, r.Q.Players, r.Q.MaxPlayers, r.Ep.Address, r.Ep.Port]).ReplaceColorTags());
 
